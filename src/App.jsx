@@ -17,28 +17,22 @@ const handleCheckClick = async () => {
   setIsLoading(true);
   setResults(null);
 
-  const API_KEY = 'c2b95d453eaef8c73117df2d4ff81616296dba3cbda5932337d1e86f1a5b3d48';
-
-  // VirusTotal requires the URL to be Base64 encoded
-  // The btoa() function does this for us.
-  const urlId = btoa(inputValue).replace(/=/g, '');
-  const options = {
-    method: 'GET',
-    headers: {
-      'x-apikey': API_KEY
-    }
-  };
+  // Normalize the URL - add https:// if no protocol
+  let urlToScan = inputValue.trim();
+  if (!urlToScan.startsWith('http://') && !urlToScan.startsWith('https://')) {
+    urlToScan = 'https://' + urlToScan;
+  }
 
   try {
-    // 2. "fetch" the data from the VirusTotal API
-    const response = await fetch(`https://www.virustotal.com/api/v3/urls/${urlId}`, options);
+    // 2. Call our Netlify Function (which securely calls VirusTotal)
+    const response = await fetch(`/.netlify/functions/check-url?url=${encodeURIComponent(urlToScan)}`);
+    const data = await response.json();
 
     if (!response.ok) {
-        // If the response is not good (e.g., 404 not found), handle it
-        throw new Error('URL not found in VirusTotal database. This does not mean it is safe, just that it has not been scanned before.');
+        // If the response is not good, handle it
+        throw new Error(data.error?.message || 'Failed to fetch data from VirusTotal.');
     }
 
-    const data = await response.json();
     // 3. Save the result to our state
     setResults(data);
 
