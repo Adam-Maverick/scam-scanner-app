@@ -11,26 +11,17 @@ exports.handler = async function(event, context) {
     };
   }
 
-  // The VirusTotal API requires the URL to be Base64 encoded, without padding.
-  const encodedUrlId = Buffer.from(urlToScan).toString('base64').replace(/=/g, '');
-
-  // This uses the environment variable you set in the Netlify UI
-  const API_KEY = process.env.VITE_VIRUSTOTAL_API_KEY || process.env.VIRUSTOTAL_API_KEY;
+  // Use the environment variable you will set in the Netlify UI.
+  // We only need one. Let's use the cleaner name.
+  const API_KEY = process.env.VIRUSTOTAL_API_KEY;
   
-  console.log('Environment check:');
-  console.log('VITE_VIRUSTOTAL_API_KEY:', process.env.VITE_VIRUSTOTAL_API_KEY ? 'SET' : 'NOT SET');
-  console.log('VIRUSTOTAL_API_KEY:', process.env.VIRUSTOTAL_API_KEY ? 'SET' : 'NOT SET');
-  console.log('All env vars keys:', Object.keys(process.env).filter(k => k.includes('VIRUS') || k.includes('API')));
-  
+  // This is the check that is currently failing.
   if (!API_KEY) {
-    console.error('API_KEY is missing!');
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'API key is not configured. Please set VITE_VIRUSTOTAL_API_KEY in Netlify environment.' }),
+      body: JSON.stringify({ error: 'API key is not configured. Please set VIRUSTOTAL_API_KEY in Netlify environment.' }),
     };
   }
-  
-  console.log('API Key found, length:', API_KEY.length);
   
   const options = {
     method: 'GET',
@@ -40,21 +31,14 @@ exports.handler = async function(event, context) {
   };
 
   try {
-    console.log('Scanning URL:', urlToScan);
-    console.log('Encoded URL ID:', encodedUrlId);
-    console.log('API Key present:', !!API_KEY);
+    // THIS IS THE FIX: The ID for the URL is the URL itself.
+    // We use encodeURIComponent to ensure it's a valid part of the API path.
+    const apiUrl = `https://www.virustotal.com/api/v3/urls/${encodeURIComponent(urlToScan)}`;
+
+    console.log('Calling VirusTotal API:', apiUrl);
     
-    const apiUrl = `https://www.virustotal.com/api/v3/urls/${encodedUrlId}`;
-    console.log('Calling API URL:', apiUrl);
-    
-    // The serverless function calls the VirusTotal API with the correct Base64 ID
     const response = await fetch(apiUrl, options);
-    
-    console.log('VirusTotal API Response Status:', response.status);
-    
     const data = await response.json();
-    
-    console.log('VirusTotal API Response Data:', JSON.stringify(data).substring(0, 200));
 
     return {
       statusCode: response.status,
@@ -62,8 +46,6 @@ exports.handler = async function(event, context) {
     };
   } catch (error) {
     console.error('Error fetching from VirusTotal:', error);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
     
     return {
       statusCode: 500,
