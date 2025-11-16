@@ -26,11 +26,18 @@ const handleCheckClick = async () => {
   try {
     // 2. Call our Netlify Function (which securely calls VirusTotal)
     const response = await fetch(`/.netlify/functions/check-url?url=${encodeURIComponent(urlToScan)}`);
+    
+    console.log('Function response status:', response.status);
+    console.log('Function response ok:', response.ok);
+    
     const data = await response.json();
+    
+    console.log('Function response data:', data);
 
     if (!response.ok) {
         // If the response is not good, handle it
-        throw new Error(data.error?.message || 'Failed to fetch data from VirusTotal.');
+        const errorMsg = data.error?.message || data.error || 'Failed to fetch data from VirusTotal.';
+        throw new Error(errorMsg);
     }
 
     // 3. Save the result to our state
