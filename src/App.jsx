@@ -14,22 +14,24 @@ function App() {
 // This new function will replace your old handleCheckClick
 // src/App.jsx -> inside the App component
 
+// src/App.jsx -> inside the App component
+
 const handleCheckClick = async () => {
   setIsLoading(true);
   setResults(null);
 
   let urlToScan = inputValue.trim();
-  if (!urlToScan.startsWith('http://') && !urlToscan.startsWith('https://')) {
+  // THE FIX IS IN THE LINE BELOW
+  if (!urlToScan.startsWith('http://') && !urlToScan.startsWith('https://')) {
     urlToScan = 'https://' + urlToScan;
   }
 
   try {
     const response = await fetch(`/.netlify/functions/check-url?url=${encodeURIComponent(urlToScan)}`);
     
-    // THIS IS THE NEW PART: Specifically check for a 404 status
     if (response.status === 404) {
-      setResults({ isNotFound: true }); // Set a special state for "not found"
-      return; // Stop the function here
+      setResults({ isNotFound: true }); 
+      return; 
     }
 
     const data = await response.json();
