@@ -15,7 +15,15 @@ exports.handler = async function(event, context) {
   const encodedUrlId = Buffer.from(urlToScan).toString('base64').replace(/=/g, '');
 
   // This uses the environment variable you set in the Netlify UI
-  const API_KEY = process.env.VITE_VIRUSTOTAL_API_KEY;
+  const API_KEY = process.env.VITE_VIRUSTOTAL_API_KEY || process.env.VIRUSTOTAL_API_KEY;
+  
+  if (!API_KEY) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'API key is not configured. Please set VITE_VIRUSTOTAL_API_KEY in Netlify environment.' }),
+    };
+  }
+  
   const options = {
     method: 'GET',
     headers: {
