@@ -17,12 +17,20 @@ exports.handler = async function(event, context) {
   // This uses the environment variable you set in the Netlify UI
   const API_KEY = process.env.VITE_VIRUSTOTAL_API_KEY || process.env.VIRUSTOTAL_API_KEY;
   
+  console.log('Environment check:');
+  console.log('VITE_VIRUSTOTAL_API_KEY:', process.env.VITE_VIRUSTOTAL_API_KEY ? 'SET' : 'NOT SET');
+  console.log('VIRUSTOTAL_API_KEY:', process.env.VIRUSTOTAL_API_KEY ? 'SET' : 'NOT SET');
+  console.log('All env vars keys:', Object.keys(process.env).filter(k => k.includes('VIRUS') || k.includes('API')));
+  
   if (!API_KEY) {
+    console.error('API_KEY is missing!');
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'API key is not configured. Please set VITE_VIRUSTOTAL_API_KEY in Netlify environment.' }),
     };
   }
+  
+  console.log('API Key found, length:', API_KEY.length);
   
   const options = {
     method: 'GET',
