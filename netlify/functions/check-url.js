@@ -32,19 +32,31 @@ exports.handler = async function(event, context) {
   };
 
   try {
+    console.log('Scanning URL:', urlToScan);
+    console.log('Encoded URL ID:', encodedUrlId);
+    console.log('API Key present:', !!API_KEY);
+    
+    const apiUrl = `https://www.virustotal.com/api/v3/urls/${encodedUrlId}`;
+    console.log('Calling API URL:', apiUrl);
+    
     // The serverless function calls the VirusTotal API with the correct Base64 ID
-    const response = await fetch(`https://www.virustotal.com/api/v3/urls/${encodedUrlId}`, options);
-    const data = await response.json();
-
+    const response = await fetch(apiUrl, options);
+    
     console.log('VirusTotal API Response Status:', response.status);
-    console.log('VirusTotal API Response Data:', data);
+    
+    const data = await response.json();
+    
+    console.log('VirusTotal API Response Data:', JSON.stringify(data).substring(0, 200));
 
     return {
       statusCode: response.status,
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error('Error fetching from VirusTotal:', error.message);
+    console.error('Error fetching from VirusTotal:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
     return {
       statusCode: 500,
       body: JSON.stringify({ error: `Failed to fetch data from VirusTotal: ${error.message}` }),
