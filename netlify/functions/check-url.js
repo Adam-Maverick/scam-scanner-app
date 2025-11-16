@@ -36,14 +36,18 @@ exports.handler = async function(event, context) {
     const response = await fetch(`https://www.virustotal.com/api/v3/urls/${encodedUrlId}`, options);
     const data = await response.json();
 
+    console.log('VirusTotal API Response Status:', response.status);
+    console.log('VirusTotal API Response Data:', data);
+
     return {
       statusCode: response.status,
       body: JSON.stringify(data),
     };
   } catch (error) {
+    console.error('Error fetching from VirusTotal:', error.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to fetch data from VirusTotal.' }),
+      body: JSON.stringify({ error: `Failed to fetch data from VirusTotal: ${error.message}` }),
     };
   }
 };
